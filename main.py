@@ -1,15 +1,34 @@
+import os
+import joblib
 import pandas as pd
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import joblib
 
-# Load model
-model = joblib.load("credit_risk_model.pkl")
+# ===== FastAPI app =====
+app = FastAPI(title="Credit Risk Prediction API", version="0.1.0")
 
-# threshold
-THRESHOLD = 0.5
+# ===== CORS Middleware =====
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# ✅ Input schema
+# ===== Load Model =====
+MODEL_PATH = "credit_risk_model.pkl"
+
+try:
+    model = joblib.load(MODEL_PATH)
+    print(f"✅ Model loaded successfully from {MODEL_PATH}")
+except Exception as e:
+    print(f"❌ Error loading model: {e}")
+    model = None
+
+
+# ===== Request Schema =====
 class CreditRiskInput(BaseModel):
     person_age: int
     person_income: float
@@ -23,15 +42,10 @@ class CreditRiskInput(BaseModel):
     loan_grade: str
     cb_person_default_on_file: str
 
-# ✅ App must be defined OUTSIDE the class
-app = FastAPI(title="Credit Risk Prediction API")
 
-@app.get("/")
-def home():
-    return {"message": "Credit Risk Prediction API is running!"}
-
-@app.post("/predict")
-def predict(data: CreditRiskInput):
+# ===== Simplified Preprocessing =====
+def preprocess_input(data: CreditRiskInput):
+    """Return raw DataFrame — model handles its own preprocessing."""
     input_dict = {
         "person_home_ownership": [data.person_home_ownership],
         "loan_intent": [data.loan_intent],
@@ -45,17 +59,30 @@ def predict(data: CreditRiskInput):
         "loan_percent_income": [data.loan_percent_income],
         "cb_person_cred_hist_length": [data.cb_person_cred_hist_length]
     }
+    df = pd.DataFrame(input_dict)
+    return df
 
-    features = pd.DataFrame(input_dict)
+
+# ===== Prediction Endpoint =====
+@app.post("/predict")
+async def predict(data: CreditRiskInput):
+    if model is None:
+        return {"error": "Model not loaded correctly."}
 
     try:
-        prediction = model.predict(features)[0]
-        probability = model.predict_proba(features)[0][1]
+        processed = preprocess_input(data)
+        prediction = model.predict(processed)
+        probability = model.predict_proba(processed).tolist()[0]
+        
+        return {
+            "prediction": int(prediction[0]),
+            "probability": probability
+        }
     except Exception as e:
-        return {"error": str(e), "features": features.to_dict()}
+        return {"error": str(e)}
 
-    return {
-        "prediction": int(prediction),
-        "probability": round(probability, 4),
-        "threshold": THRESHOLD
-    }
+
+# ===== Root Endpoint =====
+@app.get("/")
+async def root():
+    return {"message": "Credit Risk Prediction API is running 🚀"}
