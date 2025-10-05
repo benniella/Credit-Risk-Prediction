@@ -66,11 +66,22 @@ export async function predictCreditRisk(customerData, { signal, timeout = 60000 
     }
 
     // Transform backend response to match frontend expectations
-    // Backend returns: { prediction: 0/1, probability: number, threshold: number }
+    // Backend returns: { prediction: 0/1, probability: [prob_no_default, prob_default], threshold: number }
     // Frontend expects: { prediction: "No Default"/"Default", default_probability: number, threshold: number }
+    
+    // Handle probability as either array or number
+    let defaultProb;
+    if (Array.isArray(data.probability)) {
+      // If array, take the second element (probability of default/positive class)
+      defaultProb = data.probability[1];
+    } else {
+      // If single number, use it directly
+      defaultProb = data.probability;
+    }
+
     const transformedData = {
       prediction: data.prediction === 1 ? "Default" : "No Default",
-      default_probability: data.probability, // Probability of default
+      default_probability: defaultProb, // Probability of default
       threshold: data.threshold || 0.5 // Threshold from backend or default
     };
 
