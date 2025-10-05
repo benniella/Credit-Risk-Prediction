@@ -1,7 +1,7 @@
 // Use CORS proxy if direct connection fails
 const USE_PROXY = false; // Set to true if CORS issues persist
 const PROXY_URL = "https://corsproxy.io/?";
-const DIRECT_URL = import.meta.env.VITE_API_URL || "https://credit-risk-prediction-1-wzt4.onrender.com";
+const DIRECT_URL = (import.meta.env.VITE_API_URL || "https://credit-risk-prediction-1-wzt4.onrender.com").replace(/\/$/, '');
 const API_URL = USE_PROXY ? PROXY_URL + encodeURIComponent(DIRECT_URL) : DIRECT_URL;
 
 export async function predictCreditRisk(customerData, { signal, timeout = 60000 } = {}) {
