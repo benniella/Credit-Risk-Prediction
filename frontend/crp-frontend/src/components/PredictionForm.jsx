@@ -27,71 +27,69 @@ export default function PredictionForm({ setPrediction }) {
   const validate = (values) => {
     const e = {};
     
-    // Person age validation
+    // Person age validation - only required, no range limits
     if (!values.person_age || values.person_age === "") {
       e.person_age = "Required";
-    } else if (Number(values.person_age) < 18 || Number(values.person_age) > 100) {
-      e.person_age = "Must be between 18-100";
     }
     
-    // Person income validation
+    // Person income validation - required and must be non-negative
     if (values.person_income === "") {
       e.person_income = "Required";
     } else if (Number(values.person_income) < 0) {
-      e.person_income = "Must be positive";
+      e.person_income = "Cannot be negative";
     }
     
-    // Employment length validation
+    // Employment length validation - required and must be non-negative
     if (values.person_emp_length === "") {
       e.person_emp_length = "Required";
     } else if (Number(values.person_emp_length) < 0) {
-      e.person_emp_length = "Must be positive";
+      e.person_emp_length = "Cannot be negative";
     }
     
-    // Loan amount validation
+    // Loan amount validation - required and must be non-negative
     if (values.loan_amnt === "") {
       e.loan_amnt = "Required";
     } else if (Number(values.loan_amnt) < 0) {
-      e.loan_amnt = "Must be positive";
+      e.loan_amnt = "Cannot be negative";
     }
     
-    // Loan interest rate validation
+    // Loan interest rate validation - required and must be non-negative
     if (values.loan_int_rate === "") {
       e.loan_int_rate = "Required";
-    } else if (Number(values.loan_int_rate) < 0 || Number(values.loan_int_rate) > 100) {
-      e.loan_int_rate = "Must be between 0-100";
+    } else if (Number(values.loan_int_rate) < 0) {
+      e.loan_int_rate = "Cannot be negative";
     }
     
-    // Loan percent income validation
+    // Loan percent income validation - required and must be non-negative
     if (values.loan_percent_income === "") {
       e.loan_percent_income = "Required";
-    } else if (Number(values.loan_percent_income) < 0 || Number(values.loan_percent_income) > 1) {
-      e.loan_percent_income = "Must be between 0-1";
+    } else if (Number(values.loan_percent_income) < 0) {
+      e.loan_percent_income = "Cannot be negative";
     }
     
-    // Credit history length validation
+    // Credit history length validation - required and must be non-negative
     if (values.cb_person_cred_hist_length === "") {
       e.cb_person_cred_hist_length = "Required";
     } else if (Number(values.cb_person_cred_hist_length) < 0) {
-      e.cb_person_cred_hist_length = "Must be positive";
+      e.cb_person_cred_hist_length = "Cannot be negative";
     }
     
-    // Home ownership validation
+    // Home ownership validation - must select valid option
     if (!values.person_home_ownership || values.person_home_ownership === "") {
       e.person_home_ownership = "Select home ownership";
     }
     
-    // Loan intent validation
+    // Loan intent validation - must select valid option
     if (!values.loan_intent || values.loan_intent === "") {
       e.loan_intent = "Select loan intent";
     }
     
-    // Loan grade validation
+    // Loan grade validation - must select valid option
     if (!values.loan_grade || values.loan_grade === "") {
       e.loan_grade = "Select loan grade";
     }
     
-    // Default on file validation
+    // Default on file validation - must select valid option
     if (!values.cb_person_default_on_file || values.cb_person_default_on_file === "") {
       e.cb_person_default_on_file = "Select an option";
     }
@@ -140,7 +138,6 @@ export default function PredictionForm({ setPrediction }) {
 
     setLoading(true);
     try {
-      // First, wake up the server (important for Render free tier)
       console.log("Waking up server...");
       await wakeUpServer();
       console.log("Server ready, sending prediction request...");
@@ -203,8 +200,6 @@ export default function PredictionForm({ setPrediction }) {
           onChange={handleChange} 
           type="number" 
           error={errors.person_age}
-          min="18"
-          max="100"
           placeholder="e.g., 35"
         />
         <Input 
@@ -249,7 +244,6 @@ export default function PredictionForm({ setPrediction }) {
           step="0.01"
           error={errors.loan_int_rate}
           min="0"
-          max="100"
           placeholder="e.g., 12.50"
         />
         <Input 
@@ -261,7 +255,6 @@ export default function PredictionForm({ setPrediction }) {
           step="0.01"
           error={errors.loan_percent_income}
           min="0"
-          max="1"
           placeholder="e.g., 0.25"
         />
         <Input 
